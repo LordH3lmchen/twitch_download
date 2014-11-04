@@ -26,6 +26,7 @@ downloads and converts Broadcasts from Twitch
 
             2014-11-3:
                 Twitch API changed. This script uses know api.twitch.tv instead of api.justin.tv
+                Fixed Config Init Error
 
 '''
 
