@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
+
 '''
 twitch_download -- small commandline tool to download Past Broadcasts from Twitch.
 
@@ -26,7 +27,10 @@ downloads and converts Broadcasts from Twitch
 
             2014-11-3:
                 Twitch API changed. This script uses know api.twitch.tv instead of api.justin.tv
-                Fixed Config Init Error
+
+            2014-11-4:
+                The script works now on OS X (Apple)
+                Fixed Config Initialization Error
 
 '''
 
@@ -42,7 +46,7 @@ from optparse import OptionParser
 __author__ = 'Flo'
 
 BASE_URL = 'https://api.twitch.tv'
-FFMPEG_PATH = os.getcwd() + '\\ffmpeg.exe'
+FFMPEG_BIN = os.getcwd() + '\\ffmpeg.exe'
 
 
 class Twitch(object):
@@ -158,7 +162,7 @@ def download_file(url, fullFilePath):
     print("downloading {0}".format(os.path.basename(fullFilePath)))
 
 
-    CS = 1048576
+    CS = 1024
     done = 0
     r = requests.get(url, stream=True)
     with open(fullFilePath, 'wb') as f:
@@ -205,7 +209,7 @@ def download_broadcast(broadcast_info, filename):
         else:
             download_file(video_file_url, part_filename)
     f.close()
-    subprocess.check_call([FFMPEG_PATH, '-f', 'concat', '-i', filename + '_filelist.tmp', '-c', 'copy', filename + '.mp4'])
+    subprocess.check_call([FFMPEG_BIN, '-f', 'concat', '-i', filename + '_filelist.tmp', '-c', 'copy', filename + '.mp4'])
     os.remove(filename + '_filelist.tmp')
 
 
@@ -248,27 +252,27 @@ if __name__=="__main__":
     if os.path.exists('twitch_download.cfg') == False:
         print('config_file not found!')
         download_folder = ''
-        FFMPEG_PATH = ''
+        FFMPEG_BIN = ''
         while len(download_folder) == 0:
             download_folder = input('specify download folder: ')
             if os.path.exists(download_folder) == False:
                 print('invalid download directory!')
                 download_folder = ''
-        while len(FFMPEG_PATH) == 0:
-            FFMPEG_PATH = input('specifiy the folder that contains \"ffmpeg.exe\" : ')
-            FFMPEG_PATH = FFMPEG_PATH + '/ffmpeg.exe'
-            if os.path.exists(FFMPEG_PATH) == False:
-                print('ffmpeg.exe not found!')
-                FFMPEG_PATH = ''
+        while len(FFMPEG_BIN) == 0:
+            FFMPEG_BIN = input('specifiy the folder that contains \"ffmpeg.exe\" : ')
+            FFMPEG_BIN = FFMPEG_BIN
+            if os.path.exists(FFMPEG_BIN) == False:
+                print('ffmpeg not found!')
+                FFMPEG_BIN = ''
         config.set('DEFAULT', 'download_folder', download_folder)
-        config.set('DEFAULT', 'ffmpeg_path', FFMPEG_PATH)
+        config.set('DEFAULT', 'ffmpeg_bin', FFMPEG_BIN)
         with open('twitch_download.cfg', 'w') as configfile:
             config.write(configfile)
     else:
         config.read('twitch_download.cfg')
         try:
             download_folder = config.get('DEFAULT', 'download_folder')
-            FFMPEG_PATH = config.get('DEFAULT', 'ffmpeg_path')
+            FFMPEG_BIN = config.get('DEFAULT', 'ffmpeg_bin')
         except (KeyError, configparser.NoOptionError) as e:
             print('Invalid  config-file:\n\n' + str(e) + '\n\nFix the twitch_download.cfg or delete it to generate a new one.')
             exit();
