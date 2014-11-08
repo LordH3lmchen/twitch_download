@@ -107,7 +107,13 @@ def download_broadcast(broadcast_info, filename, quality=None):
         quality = twitch.get_highest_quality(broadcast_info)
         print('No quality specified, downloading ' + quality + '-quality.')
 
-    tmp_video_file_urls = broadcast_info.get_video_file_urls(quality)
+    if quality in broadcast_info.get_available_qualities():
+        tmp_video_file_urls = broadcast_info.get_video_file_urls(quality)
+    else:
+        print(quality + "-quality isn't available\n")
+        print("Available qualities are ")
+        for available_quality in broadcast_info.get_available_qualities():
+            print("\t" + quality)
 
     for nr, video_file_url in enumerate(tmp_video_file_urls):
         ext = os.path.splitext(video_file_url)[1]
@@ -163,7 +169,12 @@ def interactive_mode():
             print("invalid input! Specify URL, StreamID with optional Quality\n"
                   "Examples:\n"
                   "\thttp://www.twitch.tv/esltv_sc2/b/585041281 720p\n"
-                  "\thttp://www.twitch.tv/esltv_sc2/b/585041281")
+                  "\thttp://www.twitch.tv/esltv_sc2/b/585041281\n"
+                  "\t585041281\n"
+                  "\t585041281 240p\n"
+                  "\n"
+                  "Available qualities: "
+                  "240p, 360p, 480p, 720p, source")
 
 
 if __name__=="__main__":
@@ -202,8 +213,6 @@ if __name__=="__main__":
     (options, args) = parser.parse_args()
     if len(args)==0:
         interactive_mode()
-    if len(args)!=1:
-        print("invalid number of arguments\n Use --help option ")
     else:
         broadcastURLs = args
         for broadcastURL in broadcastURLs:
