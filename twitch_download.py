@@ -131,7 +131,16 @@ def download_broadcast(broadcast_info, filename, quality=None):
 
 def print_help():
     print("In this interactive mode you can enter the Stream id or the URL to the past broadcast")
-    print("Example: \"http://www.twitch.tv/redbullesports/b/556269222\"")
+    print("Append the quality after the specication of the stream.\n"
+          "The best quality available will be selected by default.\n"
+          "Examples:\n"
+          "\thttp://www.twitch.tv/esltv_sc2/b/585041281 720p\n"
+          "\thttp://www.twitch.tv/esltv_sc2/b/585041281\n"
+          "\t585041281\n"
+          "\t585041281 240p\n"
+          "\n"
+          "Available qualities: "
+          "240p, 360p, 480p, 720p, source
     print("This script will create the folder hierarchy <yourLibrary\<game>\<streamer> for your download.")
     print("After the download the script converts the Past Broadcast in a mp4-Video with ffmpeg")
 
