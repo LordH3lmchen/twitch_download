@@ -25,12 +25,15 @@ downloads and converts Broadcasts from Twitch
                  Justin.tv API enthält. So können auch andere APIs implementiert werden, die auch nur ein VideoInfo
                  Objekt erzeugen.
 
-            2014-11-3:
+            2014-11-03:
                 Twitch API changed. This script uses know api.twitch.tv instead of api.justin.tv
 
-            2014-11-4:
+            2014-11-04:
                 The script works now on OS X (Apple)
                 Fixed Config Initialization Error
+
+            2014-11-09:
+                Small improvements and some bugfixes
 
 '''
 
@@ -62,12 +65,13 @@ def download_file(url, fullFilePath, cur_part, num_parts):
     CS = 1024
     cur_length = 0
 
-    r = requests.head(url)
+    # r = requests.head(url)
+    r = requests.get(url, stream=True, timeout=(3.05, 27))
     file_size = int(r.headers['Content-Length']) / float(pow(1024, 2))
     if r.headers['Content-Type'] != 'video/x-flv':
         raise Exception("Incorrect Content-Type ({0}) for {1}".format(r.headers['Content-Type'], url))
 
-    r = requests.get(url, stream=True)
+
     with open(fullFilePath, 'wb') as f:
         for chunk in r.iter_content(chunk_size=CS):
             if chunk: # filter out keep-alive new chunks
@@ -110,7 +114,7 @@ def download_broadcast(broadcast_info, filename, quality=None):
     if quality in broadcast_info.get_available_qualities():
         tmp_video_file_urls = broadcast_info.get_video_file_urls(quality)
     else:
-        print(quality + "-quality isn't available\n")
+        print(quality + "-quality isn't available\n")   # Some broadcasts are not available in every quality
         print("Available qualities are ")
         for available_quality in broadcast_info.get_available_qualities():
             print("\t" + quality)
@@ -140,7 +144,7 @@ def print_help():
           "\t585041281 240p\n"
           "\n"
           "Available qualities: "
-          "240p, 360p, 480p, 720p, source
+          "240p, 360p, 480p, 720p, source\n")
     print("This script will create the folder hierarchy <yourLibrary\<game>\<streamer> for your download.")
     print("After the download the script converts the Past Broadcast in a mp4-Video with ffmpeg")
 
@@ -175,15 +179,8 @@ def interactive_mode():
         elif len(interactive_input) == 1:
             download_broadcast(broadcast_info, filename)
         else:
-            print("invalid input! Specify URL, StreamID with optional Quality\n"
-                  "Examples:\n"
-                  "\thttp://www.twitch.tv/esltv_sc2/b/585041281 720p\n"
-                  "\thttp://www.twitch.tv/esltv_sc2/b/585041281\n"
-                  "\t585041281\n"
-                  "\t585041281 240p\n"
-                  "\n"
-                  "Available qualities: "
-                  "240p, 360p, 480p, 720p, source")
+            print("invalid input! Specify URL, StreamID with optional Quality\n")
+            print_help()
 
 
 if __name__=="__main__":
