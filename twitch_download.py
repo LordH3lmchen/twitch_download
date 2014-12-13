@@ -117,7 +117,7 @@ def download_broadcast(broadcast_info, filename, quality=None):
         print(quality + "-quality isn't available\n")   # Some broadcasts are not available in every quality
         print("Available qualities are ")
         for available_quality in broadcast_info.get_available_qualities():
-            print("\t" + quality)
+            print("\t" + available_quality)
 
     for nr, video_file_url in enumerate(tmp_video_file_urls):
         ext = os.path.splitext(video_file_url)[1]
@@ -227,5 +227,5 @@ if __name__=="__main__":
             except twitch.TwitchApiError as e:
                 print('TwitchApiError occured', e.message)
                 continue
-            filename = download_folder + "/" + safe_filename(broadcast_info[0]['meta_game'] + "/" + broadcast_info[0]['channel_name'] + "/" + broadcast_info[0]['title'] + '_' + broadcast_info[0]['start_time'])
+            filename =  download_folder + safe_filename("/" + broadcast_info.meta_game + "/" + broadcast_info.channel_name + "/" + broadcast_info.title + '_' + broadcast_info.start_time)
             download_broadcast(broadcast_info, filename)
