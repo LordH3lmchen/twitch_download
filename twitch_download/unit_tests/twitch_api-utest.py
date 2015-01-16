@@ -1,8 +1,9 @@
 __author__ = 'Flo'
 
 import unittest
-import twitch
-import video
+
+from twitch_download import video, twitch
+
 
 class MyTestCase(unittest.TestCase):
     def test_twitch_get_video_info(self):
@@ -19,9 +20,6 @@ class MyTestCase(unittest.TestCase):
             print(url)
 
         print('Highest Quality: ' + twitch.get_highest_quality(video_info))
-
-
-
 
 
 if __name__ == '__main__':
