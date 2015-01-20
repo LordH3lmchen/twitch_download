@@ -1,7 +1,8 @@
 import re
+
 import requests
 
-from video import VideoInfo
+from twitch_download.video import VideoInfo
 
 
 __author__ = 'flo'
@@ -38,13 +39,13 @@ def get_video_info(id_):
         raise TwitchApiError("API returned {0}".format(r.status_code))
     bcast_json = r.json()
     bcast_info_json = r_info.json()
-    video_info = VideoInfo(bcast_info_json['title'], \
-                           'Gaming', \
-                           bcast_info_json['channel']['display_name'], \
-                           bcast_info_json['title'], \
-                           'unknown', \
-                           bcast_info_json['game'], \
-                           bcast_info_json['recorded_at'], \
+    video_info = VideoInfo(bcast_info_json['title'],
+                           'Gaming',
+                           bcast_info_json['channel']['display_name'],
+                           bcast_info_json['title'],
+                           'unknown',
+                           bcast_info_json['game'],
+                           bcast_info_json['recorded_at'],
                            bcast_info_json['url'])  # add Description
 
     for quality in bcast_json['chunks']:
@@ -62,8 +63,7 @@ def get_highest_quality(video_info):
             return None
 
 
-
-class  ApiError(Exception):
+class TwitchApiError(Exception):
 
     def __init__(self, message):
         self.message = message

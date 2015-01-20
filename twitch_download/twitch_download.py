@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 
-'''
+"""
 twitch_download -- small commandline tool to download Past Broadcasts from Twitch.
 
 downloads and converts Broadcasts from Twitch
@@ -35,7 +35,7 @@ downloads and converts Broadcasts from Twitch
             2014-11-09:
                 Small improvements and some bugfixes
 
-'''
+"""
 
 import os
 import sys
@@ -43,26 +43,27 @@ import string
 import configparser
 import subprocess
 from optparse import OptionParser
+
 import requests
-import re
-import twitch
+
+from twitch_download import twitch
+
 
 __author__ = 'Flo'
 
-FFMPEG_BIN = os.getcwd() + '\\ffmpeg.exe'
-
+FFMPEG_BIN = os.path.join(os.getcwd(), 'ffmpeg.exe')
+allowed_chars = "-_.() " + string.ascii_letters + string.digits + '\\' + '/'
 
 
 def safe_filename(title):
     """ returns a valid filename for the 'title' string """
     #title = title.encode('ascii', 'ignore')
-    allowed = "-_.() " + string.ascii_letters + string.digits + '\\' + '/'
-    safeTitle = "".join([c for c in title if c in allowed])
-    return safeTitle.replace(' ', '_')
+    safe_title = "".join([c for c in title if c in allowed_chars])
+    return safe_title.replace(' ', '_')
 
 
-def download_file(url, fullFilePath, cur_part, num_parts):
-    CS = 1024
+def download_file(url, full_file_path, cur_part, num_parts):
+    chunk_size = 1024
     cur_length = 0
 
     # r = requests.head(url)
@@ -71,13 +72,12 @@ def download_file(url, fullFilePath, cur_part, num_parts):
     if r.headers['Content-Type'] != 'video/x-flv':
         raise Exception("Incorrect Content-Type ({0}) for {1}".format(r.headers['Content-Type'], url))
 
-
-    with open(fullFilePath, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=CS):
-            if chunk: # filter out keep-alive new chunks
+    with open(full_file_path, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=chunk_size):
+            if chunk:  # filter out keep-alive new chunks
                 f.write(chunk)
                 f.flush()
-                cur_length += CS
+                cur_length += chunk_size
                 sys.stdout.write("\rDownloading {0}/{1}: {2:.2f}/{3:.2f}MB ({4:.1f}%)".format(cur_part, num_parts, cur_length / float(pow(1024, 2)), file_size, ((cur_length / float(pow(1024, 2))) / file_size) * 100))
     f.close()
     print("...complete")
@@ -88,16 +88,16 @@ def remove_latest_videofile(part_filename):
     for filename in os.listdir(os.path.dirname(part_filename)):
         if (filename.endswith('.flv')) and (filename.startswith(os.path.basename(part_filename))):
             filelist.append(filename)
-    if len(filelist)>0:
+    if len(filelist) > 0:
         print('incomplete download found, deleting incomplete file ' + filelist[-1])
-        os.remove(os.path.dirname(part_filename) + '\\' + filelist[-1])
+        os.remove(os.path.join(os.path.dirname(part_filename), filelist[-1]))
 
 
 def download_broadcast(broadcast_info, filename, quality=None):
     """ download all video parts for broadcast 'id_' """
     # erstelle zielordner falls noetig
     filename = os.path.abspath(filename)
-    if os.path.exists(os.path.dirname(filename)) == False:
+    if not os.path.exists(os.path.dirname(filename)):
         os.makedirs(os.path.dirname(filename))
     f = open(filename + '_filelist.tmp', 'w')  # fileliste fuer ffmpeg
     if os.path.exists(filename + '.mp4'):
@@ -107,7 +107,7 @@ def download_broadcast(broadcast_info, filename, quality=None):
         return
     remove_latest_videofile(filename)
 
-    if quality == None:
+    if quality is None:
         quality = twitch.get_highest_quality(broadcast_info)
         print('No quality specified, downloading ' + quality + '-quality.')
 
@@ -170,7 +170,7 @@ def interactive_mode():
         except twitch.TwitchApiError as e:
             print('TwitchApiError occured: ', e.message)
             continue
-        if broadcast_info.meta_game == None:    # Es gibnt Broadcasts ohne meta_game angabe
+        if broadcast_info.meta_game is None:    # Es gibnt Broadcasts ohne meta_game angabe
             broadcast_info.meta_game = 'no_meta_game' #Ersetze None durch 'no_meta_game' um einen Fehler im filename zu vermeiden.
         filename = download_folder + safe_filename("/" + broadcast_info.meta_game + "/" + broadcast_info.channel_name + "/" + broadcast_info.title + '_' + broadcast_info.start_time)
         if len(interactive_input) == 2:
@@ -183,23 +183,23 @@ def interactive_mode():
             print_help()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     #create cfg-file if needed.
     config = configparser.RawConfigParser()
-    if os.path.exists('twitch_download.cfg') == False:
+    if not os.path.exists('twitch_download.cfg'):
         print('config_file not found!')
         download_folder = ''
         FFMPEG_BIN = ''
         while len(download_folder) == 0:
             download_folder = input('specify download folder: ')
-            if os.path.exists(download_folder) == False:
+            if not os.path.exists(download_folder):
                 print('invalid download directory!')
                 download_folder = ''
         while len(FFMPEG_BIN) == 0:
             FFMPEG_BIN = input('specifiy the \"ffmpeg\" - binary (Full PATH): ')
             FFMPEG_BIN = FFMPEG_BIN
-            if os.path.exists(FFMPEG_BIN) == False:
+            if not os.path.exists(FFMPEG_BIN):
                 print('ffmpeg not found!')
                 FFMPEG_BIN = ''
         config.set('DEFAULT', 'download_folder', download_folder)
@@ -213,11 +213,11 @@ if __name__=="__main__":
             FFMPEG_BIN = config.get('DEFAULT', 'ffmpeg_bin')
         except (KeyError, configparser.NoOptionError) as e:
             print('Invalid  config-file:\n\n' + str(e) + '\n\nFix the twitch_download.cfg or delete it to generate a new one.')
-            exit();
+            exit()
     usage = "usage: %prog [TwitchBroadcastId ... ]"
     parser = OptionParser(usage)
     (options, args) = parser.parse_args()
-    if len(args)==0:
+    if len(args) == 0:
         interactive_mode()
     else:
         broadcastURLs = args
@@ -227,5 +227,10 @@ if __name__=="__main__":
             except twitch.TwitchApiError as e:
                 print('TwitchApiError occured', e.message)
                 continue
-            filename =  download_folder + safe_filename("/" + broadcast_info.meta_game + "/" + broadcast_info.channel_name + "/" + broadcast_info.title + '_' + broadcast_info.start_time)
+            filename = os.path.join(download_folder, safe_filename(
+                os.path.join(
+                    broadcast_info.meta_game, broadcast_info.channel_name,
+                    broadcast_info.title, broadcast_info.start_time)
+                )
+            )
             download_broadcast(broadcast_info, filename)
